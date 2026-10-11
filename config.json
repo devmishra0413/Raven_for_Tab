@@ -2,8 +2,11 @@
   "cloud": {
     "base_url": "https://openrouter.ai/api/v1",
     "api_key_env": "OPENROUTER_API_KEY",
-    "models": ["mock-model"],
-    "timeout_seconds": 30,
+    "models": [
+      "nvidia/nemotron-3.5-lightning:free",
+      "openrouter/free"
+    ],
+    "timeout_seconds": 60,
     "max_attempts_per_model": 2,
     "max_tokens": 800
   },
