@@ -1,0 +1,13 @@
+{
+  "cloud": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_env": "OPENROUTER_API_KEY",
+    "models": ["mock-model"],
+    "timeout_seconds": 30,
+    "max_attempts_per_model": 2,
+    "max_tokens": 800
+  },
+  "privacy": { "preview": "always" },
+  "session": { "history_messages": 6, "context_k": 5, "context_max_chars": 1200 },
+  "paths": { "db": "data/raven.db" }
+}

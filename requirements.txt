@@ -1,0 +1,5 @@
+fastapi==0.143.0
+numpy==2.5.4
+onnxruntime==1.31.0
+openwakeword==0.6.0
+pydantic==2.14.0

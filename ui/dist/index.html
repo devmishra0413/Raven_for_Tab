@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RAVEN</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060914;--glass:rgba(16,22,44,.62);--line:rgba(140,170,255,.16);--tx:#e8eeff;--mu:#8e9bc4;--cy:#5ee6ff;--vi:#8b7bff;--mint:#6ef3b5;--amb:#ffb86b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font:400 14px/1.45 Sora,system-ui,sans-serif;overflow:hidden}
+canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.app{position:relative;z-index:1;height:100%;display:grid;grid-template-columns:minmax(280px,1fr) minmax(300px,1.3fr) minmax(260px,1fr);grid-template-rows:auto 1fr auto;gap:14px;padding:14px 18px}
+header{grid-column:1/-1;display:flex;align-items:center;gap:14px}
+h1{font-weight:300;font-size:22px;letter-spacing:.3em;margin-right:auto}
+.pill{display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--glass);font-size:12px;color:var(--mu)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+.dot.amb{background:var(--amb);box-shadow:0 0 8px var(--amb)}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:14px 16px;backdrop-filter:blur(14px);min-height:0}
+.card h2{font-size:13px;font-weight:600;color:var(--mu);margin-bottom:10px}
+.col{display:flex;flex-direction:column;gap:14px;min-height:0}
+.col>.card{flex:1}
+.chat{display:flex;flex-direction:column}
+#log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.m{max-width:88%;padding:8px 12px;border-radius:14px;font-size:13px}
+.me{align-self:flex-end;background:rgba(139,123,255,.25);border:1px solid rgba(139,123,255,.4)}
+.ai{align-self:flex-start;background:rgba(94,230,255,.08);border:1px solid rgba(94,230,255,.22)}
+.pv{align-self:flex-start;font-size:11.5px;color:var(--amb);border:1px dashed rgba(255,184,107,.45);border-radius:10px;padding:6px 10px}
+form{display:flex;gap:8px;margin-top:10px}
+input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--tx);font:inherit;outline:none}
+input:focus-visible,button:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+button{background:var(--cy);color:#04101a;border:0;border-radius:12px;padding:0 16px;font:600 13px Sora,system-ui;cursor:pointer}
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
+#orb{width:100%;flex:1;min-height:0}
+#state{font-size:15px;font-weight:300;letter-spacing:.08em;margin-bottom:6px}
+#sub{font-size:12px;color:var(--mu);margin-bottom:10px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;margin-bottom:10px}
+.cal span{padding:6px 0;border-radius:9px;color:var(--mu)}
+.cal .t{background:var(--cy);color:#04101a;font-weight:600}
+.ev{display:flex;gap:10px;font-size:13px;padding:5px 0;border-top:1px solid var(--line)}
+.ev b{color:var(--cy);font-weight:400;min-width:48px}
+.wx{display:flex;align-items:center;gap:14px}
+.wx big{font-size:38px;font-weight:300}
+.news p{font-size:13px;padding:6px 0;border-top:1px solid var(--line);color:#c5cfee}
+.news p:first-of-type{border:0}
+footer{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:stretch}
+#feed{height:74px;overflow:hidden;font:12px/1.55 ui-monospace,Menlo,monospace;color:var(--mu);display:flex;flex-direction:column;justify-content:flex-end}
+#feed i{font-style:normal;color:var(--mint)}
+.ctl{display:flex;gap:10px;align-items:center}
+.ctl button{background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--line);height:44px;min-width:44px}
+.ctl button[aria-pressed=true]{border-color:var(--cy);color:var(--cy)}
+/* mic states: idle (grey) / rec (red pulse) / busy (processing) */
+#mic.rec{border-color:#ff5d6c;color:#ff5d6c;animation:pulse 1.2s infinite}
+#mic.busy{border-color:var(--amb);color:var(--amb)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(255,93,108,0),0 0 12px rgba(255,93,108,.6)}}
+@media (prefers-reduced-motion:reduce){#mic.rec{animation:none}}
+body.reduce #mic.rec{animation:none}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--glass);border:1px solid var(--line);padding:8px 14px;border-radius:12px;font-size:12px;display:none;z-index:5}
+@media (max-width:860px){body{overflow:auto}.app{height:auto;grid-template-columns:1fr}.stage{order:-1;height:300px}.chat{height:380px}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="toast" role="status"></div>
+<div class="app">
+<header>
+  <h1>RAVEN</h1>
+  <div class="pill"><span class="dot"></span>Local model chal raha hai</div>
+  <div class="pill"><span class="dot amb"></span>Cloud: sirf masked data</div>
+</header>
+<section class="card chat" aria-label="Chat">
+  <h2>RAVEN se baat karo</h2>
+  <div id="log" role="log" aria-live="polite"></div>
+  <form id="f"><input id="q" placeholder="Rahul ko 9876543210 pe call yaad dilao" autocomplete="off" aria-label="Message"><button>Bhejo</button></form>
+</section>
+<section class="stage" aria-label="RAVEN status">
+  <canvas id="orb"></canvas>
+  <div id="state">Taiyaar</div>
+  <div id="sub">Kuch bolo ya likho</div>
+</section>
+<div class="col">
+  <section class="card" aria-label="Calendar">
+    <h2>Oct 2026</h2>
+    <div class="cal"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span class="t">Fri</span><span>Sat</span><span>Sun</span><span>5</span><span>6</span><span>7</span><span>8</span><span class="t">9</span><span>10</span><span>11</span></div>
+    <div class="ev"><b>11:00</b>Team call</div>
+    <div class="ev"><b>17:30</b>Gym</div>
+  </section>
+  <section class="card" aria-label="Mausam"><h2>Mausam</h2>
+    <div class="wx"><big>31°</big><div>Halki dhundh<br><span style="color:var(--mu)">Shaam tak 28°</span></div></div>
+  </section>
+  <section class="card news" aria-label="Khabrein"><h2>Khabrein</h2>
+    <p>Naye chhote AI models phone par chalne lage</p>
+    <p>On-device AI se privacy par bahas tez</p>
+  </section>
+</div>
+<footer>
+  <section class="card" aria-label="Activity log"><div id="feed"></div></section>
+  <div class="ctl">
+    <button id="mic" aria-pressed="false" aria-label="Voice">Mic</button>
+    <button id="pv" aria-pressed="true" aria-label="Preview toggle">Preview on</button>
+  </div>
+</footer>
+</div>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) document.body.classList.add('reduce');
+  /* stars */
+  const bg = document.getElementById('bg'), bx = bg.getContext('2d'); let S = [];
+  function sizeBg(){ bg.width = innerWidth; bg.height = innerHeight; S = Array.from({length:150},()=>({x:Math.random()*bg.width,y:Math.random()*bg.height,r:Math.random()*1.2+.2,p:Math.random()*6})); }
+  sizeBg(); addEventListener('resize',sizeBg);
+  /* orb */
+  const oc = document.getElementById('orb'), ox = oc.getContext('2d');
+  const N = 380, P = []; for(let i=0;i<N;i++){const y=1-2*(i+.5)/N,r=Math.sqrt(1-y*y),a=i*2.39996; P.push([Math.cos(a)*r,y,Math.sin(a)*r]);}
+  let energy = 0, mode = 'idle', rot = 0, t = 0;
+  function sizeOrb(){ const d = devicePixelRatio||1,w = oc.clientWidth,h = oc.clientHeight; oc.width = w*d; oc.height = h*d; ox.setTransform(d,0,0,d,0,0);} sizeOrb(); addEventListener('resize',sizeOrb);
+  function frame(){ t+=.016; rot+=reduce?0:.004+energy*.02; energy*=.985; bx.clearRect(0,0,bg.width,bg.height); for(const s of S){bx.globalAlpha=.35+.35*Math.sin(t*(reduce?0:1)+s.p);bx.fillStyle='#cfe0ff';bx.beginPath();bx.arc(s.x,s.y,s.r,0,7);bx.fill()} bx.globalAlpha=1; const w = oc.clientWidth,h = oc.clientHeight,R=Math.min(w,h)*.2*(1+energy*.06),cx=w/2,cy=h/2; ox.clearRect(0,0,w,h); const br=.5+.5*Math.sin(t*1.6),pw=.52+br*.14+energy*.3; let g=ox.createRadialGradient(cx,cy,R*.1,cx,cy,R*2.3); g.addColorStop(0,'rgba(94,230,255,'+pw+')');g.addColorStop(.35,'rgba(94,230,255,'+pw*.35+')');g.addColorStop(.65,'rgba(139,123,255,'+pw*.18+')');g.addColorStop(1,'rgba(0,0,0,0)'); ox.fillStyle=g; ox.fillRect(0,0,w,h); g=ox.createRadialGradient(cx,cy,0,cx,cy,R);g.addColorStop(0,'rgba(235,252,255,'+(.95+energy*.05)+')');g.addColorStop(.25,'rgba(120,235,255,.6)');g.addColorStop(.65,'rgba(94,230,255,.12)');g.addColorStop(1,'rgba(94,230,255,0)'); ox.fillStyle=g;ox.beginPath();ox.arc(cx,cy,R,0,7);ox.fill(); const c=Math.cos(rot),s=Math.sin(rot); const pts=P.map(p=>{const x=p[0]*c+p[2]*s,z=-p[0]*s+p[2]*c,wob=1+energy*.08*Math.sin(t*6+p[1]*5);return[x*wob,p[1]*wob,z*wob]}).sort((a,b)=>a[2]-b[2]); ox.globalCompositeOperation='lighter'; for(const p of pts){const d=(p[2]+1)/2;ox.globalAlpha=.03+d*.15;ox.fillStyle=d>.5?'#8fe9ff':'#8b7bff';ox.beginPath();ox.arc(cx+p[0]*R,cy+p[1]*R,.7+d*.9,0,7);ox.fill()} ox.globalAlpha=1; [[1.4,.28,.5,1],[1.85,.32,1.7,.55],[2.3,.45,-.3,-.4]].forEach(([m,f,tilt,sp],i)=>{ const a=tilt+(reduce?0:t*.15*sp),rx=R*m,ry=rx*f; ox.strokeStyle='rgba(140,210,255,.35)';ox.lineWidth=1;ox.beginPath();ox.ellipse(cx,cy,rx,ry,a,0,7);ox.stroke(); const u=t*.8*sp+i*2,ex=Math.cos(u)*rx,ey=Math.sin(u)*ry; ox.fillStyle='rgba(200,246,255,.95)';ox.beginPath();ox.arc(cx+ex*Math.cos(a)-ey*Math.sin(a),cy+ex*Math.sin(a)+ey*Math.cos(a),2.2,0,7);ox.fill()}); ox.globalCompositeOperation='source-over'; if(!reduce)requestAnimationFrame(frame)}; frame();
+
+  /* chat logic */
+  const logEl = document.getElementById('log');
+  const qEl = document.getElementById('q');
+  const feedEl = document.getElementById('feed');
+  const stateEl = document.getElementById('state');
+  const toastEl = document.getElementById('toast');
+  const micBtn = document.getElementById('mic');
+  let pvOn = true;
+  let speakNext = false; // set when text came from the mic: speak the reply aloud
+
+  function toast(t){ toastEl.textContent=t; toastEl.style.display='block'; setTimeout(()=>toastEl.style.display='none',2500); }
+  document.getElementById('pv').onclick = e => { pvOn=!pvOn; e.target.setAttribute('aria-pressed',pvOn); e.target.textContent='Preview '+(pvOn?'on':'off'); };
+  function addMessage(cls,text){ const d=document.createElement('div'); d.className=cls; d.textContent=text; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight; }
+  function line(html){ const d=document.createElement('div'); d.innerHTML=html; feedEl.appendChild(d); while(feedEl.children.length>4)feedEl.firstChild.remove(); }
+  const time=()=>new Date().toTimeString().slice(0,8);
+  line(time()+' <i>ok</i> RAVEN shuru hua, memory khuli');
+
+  /* mic button: idle -> rec (red) -> busy -> idle */
+  let micBusy = false;
+  micBtn.onclick = async () => {
+    if (micBusy) return;
+    micBusy = true;
+    micBtn.className = 'rec'; micBtn.setAttribute('aria-pressed','true');
+    stateEl.textContent = 'Sun raha hoon'; energy = 1;
+    try {
+      const r = await fetch('/api/voice/mic', {method:'POST'});
+      if (!r.ok) throw new Error('mic');
+      const {job_id} = await r.json();
+      for (let i=0; i<60; i++){
+        await new Promise(s => setTimeout(s, 1000));
+        const x = await fetch('/api/voice/result/'+job_id);
+        if (!x.ok) throw new Error('result');
+        const d = await x.json();
+        if (d.status === 'pending'){
+          if (d.text){ micBtn.className='busy'; micBtn.textContent='...'; stateEl.textContent='Soch raha hoon'; }
+          continue;
+        }
+        if (d.status === 'done' && d.text){
+          qEl.value = d.text;
+          addMessage('m me', d.text);
+          if (d.reply) addMessage('m ai', d.reply);
+          qEl.value = '';
+        } else if (d.status === 'done'){
+          toast('Kuch sunai nahi diya');
+        } else {
+          toast('Voice unavailable');
+        }
+        break;
+      }
+    } catch(e){ toast('Voice unavailable'); }
+    finally {
+      micBusy = false; micBtn.className=''; micBtn.textContent='Mic';
+      micBtn.setAttribute('aria-pressed','false'); stateEl.textContent='Taiyaar'; energy=0;
+    }
+  };
+
+  /* history */
+  async function loadHistory(){ try{ const res = await fetch('/api/chat/history'); if(!res.ok) throw new Error('history fetch err'); const data=await res.json(); historyRender(data.history); } catch(e){ console.warn('History load failed'); } }
+  function historyRender(items){ items.forEach(item=>{ if(item.role==='user') addMessage('m me',item.content); else addMessage('m ai',item.content);} ); }
+  loadHistory();
+
+  /* preview / send flow */
+  let pending={}; // {id, hash, text, status, payload}
+  async function sendPreview(text){ try{ const res=await fetch('/api/chat/message', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})}); const data=await res.json(); if(!res.ok){ addMessage('m ai','Error: '+JSON.stringify(data)); return; } if(data.status==='preview'){ pending={id:data.message_id, hash:data.preview.hash, text, status:'preview', payload:data.preview.payload}; renderPreview(); } else if(data.status==='blocked'){ pending={status:'blocked'}; addMessage('m ai',data.reason||'Blocked'); } else if(data.status==='needs_permission'){ pending={id:data.message_id, hash:'', text, status:'needs_permission', payload:null, topic:data.topic}; renderPermission(); } } catch(e){ addMessage('m ai','Send error'); console.error(e); } }
+  function renderPreview(){ const d=document.createElement('div'); d.className='m pv'; d.textContent='Prepared: '+pending.text; const sendBtn=document.createElement('button'); sendBtn.textContent='Send'; sendBtn.onclick=()=>{ sendMessage(); }; const cancelBtn=document.createElement('button'); cancelBtn.textContent='Cancel'; cancelBtn.onclick=()=>{ cancelMessage(); }; d.appendChild(sendBtn); d.appendChild(cancelBtn); logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight; }
+  function renderPermission(){ const d=document.createElement('div'); d.className='m pv'; d.textContent='Permission needed: '+pending.text; const allowBtn=document.createElement('button'); allowBtn.textContent='Allow'; allowBtn.onclick=()=>{ permit(true); }; const denyBtn=document.createElement('button'); denyBtn.textContent='Deny'; denyBtn.onclick=()=>{ permit(false); }; d.appendChild(allowBtn); d.appendChild(denyBtn); logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight; }
+  async function sendMessage(){ if(!pending.id||!pending.hash) return; try{ const res=await fetch('/api/chat/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message_id:pending.id, hash:pending.hash, speak:speakNext})}); speakNext=false; const data=await res.json(); if(!res.ok){ if(data.code==='CLOUD_ERROR'){ addMessage('m ai','Cloud provider abhi configure nahi hai. Development mode mein chal raha hai.'); } else { addMessage('m ai','Error: '+(data.error||'Unknown error')); } pending={}; return; } addMessage('m ai',data.reply_unmasked||data.reply); pending={}; } catch(e){ addMessage('m ai','Connection error'); console.error(e); } }
+  async function cancelMessage(){ if(!pending.id) return; try{ await fetch('/api/chat/cancel', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message_id:pending.id})}); pending={}; } catch(e){ console.error(e); } }
+  async function permit(allow){ if(!pending.id) return; try{ const res=await fetch('/api/chat/permit', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message_id:pending.id, allow})}); const data=await res.json(); if(!res.ok){ addMessage('m ai','Permit error '+JSON.stringify(data)); return; } if(data.status==='preview'){ pending={id:data.message_id, hash:data.preview.hash, text:pending.text, status:'preview', payload:data.preview.payload}; renderPreview(); } else if(data.status==='cancelled'){ pending={}; } } catch(e){ console.error(e); } }
+
+  document.getElementById('f').onsubmit=e=>{e.preventDefault(); const v=qEl.value.trim(); if(!v)return; qEl.value=''; if(pvOn) sendPreview(v); else addMessage('m me',v); };
+})();
+</script>
+</body>
+</html>

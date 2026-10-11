@@ -1,0 +1,114 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+wheels/
+dist-packages/
+
+# ==============================
+# Virtual Environments
+# ==============================
+.venv/
+venv/
+env/
+ENV/
+
+# ==============================
+# Environment Variables & Secrets
+# ==============================
+.env
+.env.*
+!.env.example
+secrets.json
+secrets.yaml
+secrets.yml
+*.pem
+*.key
+
+# ==============================
+# API Keys / Credentials
+# ==============================
+credentials.json
+token.json
+client_secret.json
+service-account.json
+
+# ==============================
+# Testing & Coverage
+# ==============================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ==============================
+# Type Checking & Linting
+# ==============================
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# ==============================
+# Logs
+# ==============================
+logs/
+*.log
+
+# ==============================
+# Local Data & Databases
+# ==============================
+*.sqlite3
+*.sqlite3-journal
+*.db
+data/
+local/
+
+# ==============================
+# AI Models & Model Cache
+# ==============================
+models/
+llm/
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.bin
+.cache/
+huggingface_cache/
+
+# ==============================
+# IDE & Operating System
+# ==============================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================
+# Node.js / Frontend
+# ==============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ==============================
+# Build Outputs
+# ==============================
+build/
+
+# ==============================
+# Temporary Files
+# ==============================
+*.tmp
+*.bak
+*.swp
+*.orig
